@@ -7,7 +7,7 @@ import * as LocalAuthentication from 'expo-local-authentication';
 
 // Services
 import { setupNotificationHandler, registerForPushNotificationsAsync, savePushTokenToFirestore } from './src/services/notificationService';
-import { loginAdmin, logoutAdmin, updateAdminPanelStatus, adjustSessionTime, terminateSession, authenticateAdminSession } from './src/services/authService';
+import { loginAdmin, logoutAdmin, updateAdminPanelStatus, adjustSessionTime, terminateSession, authenticateAdminSession, updateThemeSettings, updateAdminPassword } from './src/services/authService';
 
 // Hooks
 import { useAuth } from './src/hooks/useAuth';
@@ -18,6 +18,7 @@ import { useSharedLinks } from './src/hooks/useSharedLinks';
 import { LoginView } from './src/components/LoginView';
 import { ScannerView } from './src/components/ScannerView';
 import { AdminDashboard } from './src/components/AdminDashboard';
+import { SettingsView } from './src/components/SettingsView';
 
 setupNotificationHandler();
 
@@ -29,11 +30,13 @@ export default function App() {
 
   const [isAdminEnabled, setIsAdminEnabled] = useState(false);
   const [isScannerActive, setIsScannerActive] = useState(false);
+  const [isSettingsActive, setIsSettingsActive] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
 
   const activeSessions = useSessions(user);
   const sharedLinksProps = useSharedLinks(user);
+  const [themeSettings, setThemeSettings] = useState(null);
 
   useEffect(() => {
     // Listen for remote toggle changes (e.g. from web logout)
@@ -42,7 +45,17 @@ export default function App() {
         setIsAdminEnabled(doc.data().remoteEnabled);
       }
     });
-    return unsub;
+
+    const themeUnsub = onSnapshot(doc(db, 'config', 'profile_data'), (doc) => {
+      if (doc.exists()) {
+        setThemeSettings(doc.data().theme || {});
+      }
+    });
+
+    return () => {
+      unsub();
+      themeUnsub();
+    };
   }, []);
 
   useEffect(() => {
@@ -142,6 +155,17 @@ export default function App() {
     );
   }
 
+  if (isSettingsActive) {
+    return (
+      <SettingsView
+        onBack={() => setIsSettingsActive(false)}
+        themeSettings={themeSettings}
+        handleUpdateTheme={updateThemeSettings}
+        handleUpdatePassword={updateAdminPassword}
+      />
+    );
+  }
+
   return (
     <AdminDashboard
       user={user}
@@ -153,6 +177,9 @@ export default function App() {
       handleAdjustTime={adjustSessionTime}
       sharedLinksProps={sharedLinksProps}
       handleLogout={handleLogout}
+      themeSettings={themeSettings}
+      handleUpdateTheme={updateThemeSettings}
+      onOpenSettings={() => setIsSettingsActive(true)}
     />
   );
 }

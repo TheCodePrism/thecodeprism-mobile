@@ -87,7 +87,7 @@ export const useSharedLinks = (user) => {
 
         try {
             await setDoc(doc(db, 'shared_links', linkId), newLink);
-            const baseUrl = process.env.EXPO_PUBLIC_WEB_URL || 'https://933dd900144b.ngrok-free.app';
+            const baseUrl = process.env.EXPO_PUBLIC_WEB_URL || 'http://localhost:3000';
             const webUrl = `${baseUrl}/thecodeprism-admin/shared/${linkId}`;
             setGeneratedLink(webUrl);
             Alert.alert('Link Generated', 'Share this link with the user.');
