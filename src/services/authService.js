@@ -1,4 +1,4 @@
-import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { signInWithEmailAndPassword, signOut, updatePassword } from 'firebase/auth';
 import { doc, updateDoc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
 
@@ -52,4 +52,31 @@ export const authenticateAdminSession = async (sessionId, userEmail) => {
         expiresAt: expiryDate.toISOString(),
         authenticatedBy: userEmail
     });
+};
+
+export const updateThemeSettings = async (partialTheme) => {
+    const profileRef = doc(db, 'config', 'profile_data');
+    const profileSnap = await getDoc(profileRef);
+
+    if (profileSnap.exists()) {
+        const currentData = profileSnap.data();
+        await updateDoc(profileRef, {
+            theme: {
+                ...(currentData.theme || {}),
+                ...partialTheme
+            }
+        });
+    } else {
+        await setDoc(profileRef, {
+            theme: partialTheme
+        }, { merge: true });
+    }
+};
+
+export const updateAdminPassword = async (newPassword) => {
+    const user = auth.currentUser;
+    if (user) {
+        return updatePassword(user, newPassword);
+    }
+    throw new Error('No authenticated user found');
 };

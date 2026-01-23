@@ -1,302 +1,149 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import { Text, View, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { CameraView } from 'expo-camera';
-import { StatusBar } from 'expo-status-bar';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import { ScreenLayout } from './layout/ScreenLayout';
+import { GlassCard } from './ui/GlassCard';
 import theme from '../styles/theme';
 
+const { width } = Dimensions.get('window');
+const SCAN_SIZE = width * 0.7;
+
 export const ScannerView = ({ scanned, handleBarCodeScanned, setIsScannerActive }) => {
-    const [pulseAnim] = useState(new Animated.Value(1));
-    const [rotateAnim] = useState(new Animated.Value(0));
-
-    useEffect(() => {
-        // Pulse animation for scan frame
-        Animated.loop(
-            Animated.sequence([
-                Animated.timing(pulseAnim, {
-                    toValue: 1.05,
-                    duration: 1500,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(pulseAnim, {
-                    toValue: 1,
-                    duration: 1500,
-                    useNativeDriver: true,
-                }),
-            ])
-        ).start();
-
-        // Rotation animation for corners
-        Animated.loop(
-            Animated.timing(rotateAnim, {
-                toValue: 1,
-                duration: 3000,
-                useNativeDriver: true,
-            })
-        ).start();
-    }, []);
-
-    const rotate = rotateAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: ['0deg', '360deg'],
-    });
-
     return (
-        <View style={styles.container}>
-            <LinearGradient
-                colors={['#050505', '#0a0a0a']}
-                style={StyleSheet.absoluteFillObject}
-            />
+        <ScreenLayout style={styles.container}>
+            <View style={styles.cameraContainer}>
+                <CameraView
+                    onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
+                    barcodeScannerSettings={{
+                        barcodeTypes: ["qr", "pdf417"],
+                    }}
+                    style={StyleSheet.absoluteFillObject}
+                />
 
-            {/* Floating orb */}
-            <View style={styles.orbContainer}>
-                <View style={styles.orb} />
+                {/* Overlay */}
+                <View style={styles.overlay}>
+                    <View style={styles.unfocusedContainer}></View>
+                    <View style={styles.middleContainer}>
+                        <View style={styles.unfocusedContainer}></View>
+                        <View style={styles.focusedContainer}>
+                            <View style={[styles.corner, styles.topLeft]} />
+                            <View style={[styles.corner, styles.topRight]} />
+                            <View style={[styles.corner, styles.bottomLeft]} />
+                            <View style={[styles.corner, styles.bottomRight]} />
+
+                            {/* Scanning Animation Shim */}
+                            <View style={styles.scanLine} />
+                        </View>
+                        <View style={styles.unfocusedContainer}></View>
+                    </View>
+                    <View style={styles.unfocusedContainer}></View>
+                </View>
             </View>
 
-            <View style={styles.content}>
-                {/* Header */}
-                <View style={styles.header}>
-                    <View style={styles.scanBadge}>
-                        <View style={styles.scanDot} />
-                        <Text style={styles.scanBadgeText}>SCANNING</Text>
-                    </View>
-                    <Text style={styles.title}>Scan QR Code</Text>
-                    <Text style={styles.subtitle}>
+            <View style={styles.uiContainer}>
+                <GlassCard style={styles.infoCard}>
+                    <Ionicons name="scan-outline" size={24} color={theme.colors.primary} style={{ marginBottom: 8, alignSelf: 'center' }} />
+                    <Text style={styles.infoText}>
                         Align the QR code within the frame to authenticate
                     </Text>
-                </View>
+                </GlassCard>
 
-                {/* Camera Container */}
-                <Animated.View style={[styles.cameraWrapper, { transform: [{ scale: pulseAnim }] }]}>
-                    <View style={styles.cameraContainer}>
-                        <CameraView
-                            onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
-                            barcodeScannerSettings={{
-                                barcodeTypes: ["qr"],
-                            }}
-                            style={StyleSheet.absoluteFillObject}
-                        />
-
-                        {/* Scan Frame Overlay */}
-                        <View style={styles.scanFrame}>
-                            {/* Corners */}
-                            <Animated.View style={[styles.corner, styles.cornerTL, { transform: [{ rotate }] }]} />
-                            <Animated.View style={[styles.corner, styles.cornerTR, { transform: [{ rotate }] }]} />
-                            <Animated.View style={[styles.corner, styles.cornerBL, { transform: [{ rotate }] }]} />
-                            <Animated.View style={[styles.corner, styles.cornerBR, { transform: [{ rotate }] }]} />
-
-                            {/* Center Cross */}
-                            <View style={styles.centerCross}>
-                                <View style={styles.crossH} />
-                                <View style={styles.crossV} />
-                            </View>
-                        </View>
-                    </View>
-                </Animated.View>
-
-                {/* Instructions */}
-                <View style={styles.instructions}>
-                    <View style={styles.instructionItem}>
-                        <Text style={styles.instructionNumber}>1</Text>
-                        <Text style={styles.instructionText}>Open Admin Panel on web</Text>
-                    </View>
-                    <View style={styles.instructionItem}>
-                        <Text style={styles.instructionNumber}>2</Text>
-                        <Text style={styles.instructionText}>Position QR code in frame</Text>
-                    </View>
-                    <View style={styles.instructionItem}>
-                        <Text style={styles.instructionNumber}>3</Text>
-                        <Text style={styles.instructionText}>Complete biometric verification</Text>
-                    </View>
-                </View>
-
-                {/* Cancel Button */}
                 <TouchableOpacity
-                    style={styles.cancelButton}
+                    style={styles.closeButton}
                     onPress={() => setIsScannerActive(false)}
                 >
-                    <Text style={styles.cancelButtonText}>Cancel Scan</Text>
+                    <View style={styles.closeButtonBlur}>
+                        <Ionicons name="close" size={32} color="#fff" />
+                    </View>
                 </TouchableOpacity>
             </View>
-
-            <StatusBar style="light" />
-        </View>
+        </ScreenLayout>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: theme.colors.background,
-    },
-    orbContainer: {
-        ...StyleSheet.absoluteFillObject,
-        overflow: 'hidden',
-    },
-    orb: {
-        position: 'absolute',
-        width: 350,
-        height: 350,
-        borderRadius: 175,
-        backgroundColor: theme.colors.primary,
-        opacity: 0.1,
-        bottom: -100,
-        left: -100,
-    },
-    content: {
-        flex: 1,
-        padding: theme.spacing.xl,
-        justifyContent: 'space-between',
-        paddingTop: theme.spacing['3xl'] + 20,
-    },
-    header: {
-        alignItems: 'center',
-    },
-    scanBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: theme.spacing.xs,
-        backgroundColor: 'rgba(79, 172, 254, 0.15)',
-        paddingHorizontal: theme.spacing.md,
-        paddingVertical: theme.spacing.sm,
-        borderRadius: theme.radius.full,
-        borderWidth: 1,
-        borderColor: 'rgba(79, 172, 254, 0.5)',
-        marginBottom: theme.spacing.lg,
-    },
-    scanDot: {
-        width: 6,
-        height: 6,
-        borderRadius: 3,
-        backgroundColor: theme.colors.primary,
-    },
-    scanBadgeText: {
-        fontSize: theme.typography.sizes.xs,
-        color: theme.colors.primary,
-        fontWeight: theme.typography.weights.bold,
-        letterSpacing: 1,
-    },
-    title: {
-        fontSize: theme.typography.sizes['2xl'],
-        fontWeight: theme.typography.weights.extrabold,
-        color: theme.colors.textPrimary,
-        letterSpacing: theme.typography.letterSpacing.tight,
-        marginBottom: theme.spacing.sm,
-    },
-    subtitle: {
-        fontSize: theme.typography.sizes.sm,
-        color: theme.colors.textSecondary,
-        textAlign: 'center',
-        lineHeight: 20,
-        paddingHorizontal: theme.spacing.xl,
-    },
-    cameraWrapper: {
-        alignItems: 'center',
+        backgroundColor: '#000',
     },
     cameraContainer: {
-        width: 300,
-        height: 300,
-        borderRadius: theme.radius.xl,
+        flex: 1,
         overflow: 'hidden',
-        backgroundColor: theme.colors.backgroundCard,
-        ...theme.elevation[4],
+        borderBottomLeftRadius: 32,
+        borderBottomRightRadius: 32,
     },
-    scanFrame: {
+    overlay: {
         ...StyleSheet.absoluteFillObject,
-        justifyContent: 'center',
-        alignItems: 'center',
+    },
+    unfocusedContainer: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.7)',
+    },
+    middleContainer: {
+        flexDirection: 'row',
+        height: SCAN_SIZE,
+    },
+    focusedContainer: {
+        width: SCAN_SIZE,
+        height: SCAN_SIZE,
+        backgroundColor: 'transparent',
     },
     corner: {
         position: 'absolute',
         width: 40,
         height: 40,
         borderColor: theme.colors.primary,
-        borderWidth: 3,
+        borderWidth: 4,
+        borderRadius: 4,
     },
-    cornerTL: {
-        top: 20,
-        left: 20,
-        borderRightWidth: 0,
-        borderBottomWidth: 0,
-    },
-    cornerTR: {
-        top: 20,
-        right: 20,
-        borderLeftWidth: 0,
-        borderBottomWidth: 0,
-    },
-    cornerBL: {
-        bottom: 20,
-        left: 20,
-        borderRightWidth: 0,
-        borderTopWidth: 0,
-    },
-    cornerBR: {
-        bottom: 20,
-        right: 20,
-        borderLeftWidth: 0,
-        borderTopWidth: 0,
-    },
-    centerCross: {
-        width: 30,
-        height: 30,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    crossH: {
-        position: 'absolute',
-        width: 30,
+    topLeft: { top: 0, left: 0, borderRightWidth: 0, borderBottomWidth: 0 },
+    topRight: { top: 0, right: 0, borderLeftWidth: 0, borderBottomWidth: 0 },
+    bottomLeft: { bottom: 0, left: 0, borderRightWidth: 0, borderTopWidth: 0 },
+    bottomRight: { bottom: 0, right: 0, borderLeftWidth: 0, borderTopWidth: 0 },
+    scanLine: {
         height: 2,
+        width: '100%',
         backgroundColor: theme.colors.primary,
-    },
-    crossV: {
+        opacity: 0.5,
         position: 'absolute',
-        width: 2,
-        height: 30,
-        backgroundColor: theme.colors.primary,
+        top: '50%',
+        // In a real app, I'd animate this top value
     },
-    instructions: {
-        gap: theme.spacing.md,
-        paddingHorizontal: theme.spacing.md,
-    },
-    instructionItem: {
-        flexDirection: 'row',
+    uiContainer: {
+        position: 'absolute',
+        bottom: 40,
+        left: 0,
+        right: 0,
         alignItems: 'center',
-        gap: theme.spacing.md,
-        backgroundColor: 'rgba(17, 17, 17, 0.6)',
-        borderRadius: theme.radius.md,
-        padding: theme.spacing.md,
-        borderWidth: 1,
-        borderColor: 'rgba(79, 172, 254, 0.1)',
+        paddingHorizontal: 20,
     },
-    instructionNumber: {
-        width: 28,
-        height: 28,
-        borderRadius: 14,
-        backgroundColor: theme.colors.primary,
-        color: '#000',
-        fontSize: theme.typography.sizes.sm,
-        fontWeight: theme.typography.weights.bold,
+    infoCard: {
+        marginBottom: 30,
+        paddingVertical: 16,
+        paddingHorizontal: 24,
+        backgroundColor: 'rgba(0,0,0,0.8)',
+        borderRadius: 20,
+        width: '90%',
+    },
+    infoText: {
+        color: '#fff',
         textAlign: 'center',
-        lineHeight: 28,
+        fontSize: 14,
+        fontWeight: '500',
+        letterSpacing: 0.5,
     },
-    instructionText: {
-        flex: 1,
-        fontSize: theme.typography.sizes.sm,
-        color: theme.colors.textSecondary,
-        fontWeight: theme.typography.weights.medium,
+    closeButton: {
+        marginBottom: 10,
     },
-    cancelButton: {
-        borderWidth: 1,
-        borderColor: theme.colors.gray700,
-        borderRadius: theme.radius.md,
-        paddingVertical: theme.spacing.lg,
+    closeButtonBlur: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: 'rgba(255,255,255,0.1)',
         alignItems: 'center',
-        marginTop: theme.spacing.lg,
-    },
-    cancelButtonText: {
-        fontSize: theme.typography.sizes.md,
-        fontWeight: theme.typography.weights.semibold,
-        color: theme.colors.textSecondary,
-    },
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.2)',
+    }
 });
