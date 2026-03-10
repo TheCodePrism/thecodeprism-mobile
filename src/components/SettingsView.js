@@ -108,6 +108,23 @@ export const SettingsView = ({
                         value={localSettings.showMatrix}
                         onValueChange={(v) => handleToggle('showMatrix', v)}
                     />
+                    {localSettings.showMatrix && (
+                        <>
+                            <AnimatedInput
+                                label="Matrix Color (Hex)"
+                                value={localSettings.matrixColor || '#0f0'}
+                                onChangeText={(v) => handleToggle('matrixColor', v)}
+                                placeholder="#0f0"
+                            />
+                            <AnimatedInput
+                                label={`Matrix Speed (${localSettings.matrixSpeed || 1.0}x)`}
+                                value={String(localSettings.matrixSpeed || 1.0)}
+                                onChangeText={(v) => handleScaleChange('matrixSpeed', v)}
+                                keyboardType="numeric"
+                                placeholder="1.0"
+                            />
+                        </>
+                    )}
                     <SettingRow
                         label="Tesseract"
                         subtext="4D hypercube wireframe"
@@ -155,6 +172,30 @@ export const SettingsView = ({
                         value={localSettings.fluidBackground}
                         onValueChange={(v) => handleToggle('fluidBackground', v)}
                     />
+                    {localSettings.fluidBackground && (
+                        <AnimatedInput
+                            label={`Fluid Viscosity (${localSettings.fluidViscosity || 1.0})`}
+                            value={String(localSettings.fluidViscosity || 1.0)}
+                            onChangeText={(v) => handleScaleChange('fluidViscosity', v)}
+                            keyboardType="numeric"
+                            placeholder="1.0"
+                        />
+                    )}
+                    <SettingRow
+                        label="Entropy System"
+                        subtext="Idle chaos particles"
+                        value={localSettings.entropySystem}
+                        onValueChange={(v) => handleToggle('entropySystem', v)}
+                    />
+                    {localSettings.entropySystem && (
+                        <AnimatedInput
+                            label={`Max Entropy Particles (${localSettings.entropyParticles || 100})`}
+                            value={String(localSettings.entropyParticles || 100)}
+                            onChangeText={(v) => handleScaleChange('entropyParticles', v)}
+                            keyboardType="numeric"
+                            placeholder="100"
+                        />
+                    )}
                 </GlassCard>
 
                 {/* Scaling */}
@@ -173,6 +214,23 @@ export const SettingsView = ({
                         onChangeText={(v) => handleScaleChange('geodesicScale', v)}
                         keyboardType="numeric"
                         placeholder="1.0"
+                    />
+                </GlassCard>
+
+                {/* Theme DNA */}
+                <GlassCard style={styles.section}>
+                    <Text style={styles.sectionTitle}>Theme DNA</Text>
+                    <AnimatedInput
+                        label="Primary Accent Color (Hex)"
+                        value={localSettings.primaryColor || '#4facfe'}
+                        onChangeText={(v) => handleToggle('primaryColor', v)}
+                        placeholder="#4facfe"
+                    />
+                    <AnimatedInput
+                        label="Global Font Family"
+                        value={localSettings.fontFamily || 'Inter, sans-serif'}
+                        onChangeText={(v) => handleToggle('fontFamily', v)}
+                        placeholder="Inter, sans-serif"
                     />
                 </GlassCard>
 
