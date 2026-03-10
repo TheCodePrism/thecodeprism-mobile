@@ -10,6 +10,7 @@ A premium mobile administration dashboard built with React Native and Expo, desi
 - **📊 Admin Dashboard**: Real-time view of platform statistics and active sessions.
 - **🔔 Smart Notifications**: Stay updated with push notifications for critical events.
 - **🎨 Elite UI/UX**: Glassmorphism effects, smooth animations, and a rich dark-themed interface.
+- **✨ Granular UI/UX Tuning**: Fine-tune visual effects (Matrix speed/color, Fluid viscosity, Entropy particles) in real-time.
 
 ## 🚀 Tech Stack
 
